@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  ssh_victim:
+    build: ./ssh_victim
+    networks:
+      ctf_network:
+        ipv4_address: 192.168.10.2
+    ports:
+      - "2222:22"
+
+  attacker:
+    build: ./attacker
+    networks:
+      - ctf_network
+    depends_on:
+      - ssh_victim
+
+networks:
+  ctf_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.10.0/24
