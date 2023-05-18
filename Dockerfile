@@ -15,6 +15,8 @@ RUN mkdir /var/run/sshd
 RUN echo 'root:toor' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
+
+
 # Ajouter les règles sudo pour CTFuser
 RUN echo 'CTFuser ALL=(ALL) NOPASSWD: /usr/sbin/iptables' >> /etc/sudoers
 RUN echo 'CTFuser ALL=(ALL) NOPASSWD: /usr/sbin/ufw' >> /etc/sudoers
@@ -26,14 +28,15 @@ RUN echo 'CTFuser ALL=(ALL) NOPASSWD: /usr/bin/tshark' >> /etc/sudoers
 RUN echo "CTFuser ALL=(ALL) NOPASSWD: /usr/bin/editor /etc/ssh/sshd_config" >> /etc/sudoers
 
 
-# Ajouter les scripts verifyifattack.sh et disconnect_user.sh dans le conteneur et les rendre exécutables 
+# Ajouter les scripts verifyifattack.sh et disconnect_user.sh dans le conteneur et les rendre exécutables
+COPY firewallInit.sh /root/firewallInit.sh 
 COPY verifyifattack.sh /home/CTFuser/verifyifattack.sh
 COPY disconnect_user.sh /home/CTFuser/disconnect_user.sh
 RUN chmod +x /home/CTFuser/verifyifattack.sh
 RUN chmod +x /home/CTFuser/disconnect_user.sh
+RUN chmod +x /root/firewallInit.sh
 
-# Exécuter les scripts et démarrer le serveur SSH au démarrage du conteneur 
-CMD ["/bin/bash", "-c", "/home/CTFuser/verifyifattack.sh & /home/CTFuser/disconnect_user.sh & /usr/sbin/sshd -D"]
-
+# Exécute les script au démarrage du conteneur
+CMD ["/bin/bash", "-c", "/root/firewallInit.sh && /usr/sbin/rsyslogd && /opt/hidden_files/check_blocked_ip.sh & /opt/hidden_files/disconnect_user.sh & /usr/sbin/sshd -D"]
 EXPOSE 22
 
